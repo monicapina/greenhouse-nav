@@ -1,0 +1,17 @@
+[0.685s] Invoking command in '/home/monica/repositories/greenhouse-nav/greenhouse_nav/build/greenhouse_nav': PYTHONPATH=/home/monica/repositories/greenhouse-nav/greenhouse_nav/build/greenhouse_nav/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/monica/repositories/greenhouse-nav/greenhouse_nav/install/greenhouse_nav/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/monica/repositories/greenhouse-nav/greenhouse_nav/build/greenhouse_nav/build --no-deps symlink_data
+[0.875s] running develop
+[0.998s] running egg_info
+[0.998s] writing greenhouse_nav.egg-info/PKG-INFO
+[0.998s] writing dependency_links to greenhouse_nav.egg-info/dependency_links.txt
+[0.998s] writing entry points to greenhouse_nav.egg-info/entry_points.txt
+[0.999s] writing requirements to greenhouse_nav.egg-info/requires.txt
+[0.999s] writing top-level names to greenhouse_nav.egg-info/top_level.txt
+[1.000s] reading manifest file 'greenhouse_nav.egg-info/SOURCES.txt'
+[1.001s] writing manifest file 'greenhouse_nav.egg-info/SOURCES.txt'
+[1.002s] running build_ext
+[1.002s] Creating /home/monica/repositories/greenhouse-nav/greenhouse_nav/install/greenhouse_nav/lib/python3.10/site-packages/greenhouse-nav.egg-link (link to .)
+[1.002s] Installing mission_node script to /home/monica/repositories/greenhouse-nav/greenhouse_nav/install/greenhouse_nav/lib/greenhouse_nav
+[1.003s] 
+[1.003s] Installed /home/monica/repositories/greenhouse-nav/greenhouse_nav/build/greenhouse_nav
+[1.003s] running symlink_data
+[1.026s] Invoked command in '/home/monica/repositories/greenhouse-nav/greenhouse_nav/build/greenhouse_nav' returned '0': PYTHONPATH=/home/monica/repositories/greenhouse-nav/greenhouse_nav/build/greenhouse_nav/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/monica/repositories/greenhouse-nav/greenhouse_nav/install/greenhouse_nav/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/monica/repositories/greenhouse-nav/greenhouse_nav/build/greenhouse_nav/build --no-deps symlink_data
