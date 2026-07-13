@@ -15,6 +15,7 @@
       <uri>model://ground_plane</uri>
     </include>
 
+    <!-- Greenhouse walls: The walls go from X=-3 to X=3 -->
     <!-- ========== CROP ROW 1 ========== -->
     <!-- Left wall -->
     <model name="row1_left">
@@ -22,7 +23,7 @@
       <pose>0 0.5 0.5 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
+          <geometry><box><size>6 0.1 1</size></box></geometry> <!-- 6 meters long, 0.1 wide, 1 tall -->
         </collision>
         <visual name="visual">
           <geometry><box><size>6 0.1 1</size></box></geometry>

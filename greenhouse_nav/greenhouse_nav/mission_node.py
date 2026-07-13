@@ -8,7 +8,6 @@ Handles failed goals by skipping to the next row.
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
-from rclpy.duration import Duration
 
 from nav2_msgs.action import NavigateToPose
 from geometry_msgs.msg import PoseStamped
@@ -16,6 +15,7 @@ from action_msgs.msg import GoalStatus
 
 import yaml
 import os
+import math
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -31,7 +31,7 @@ class MissionNode(Node):
         self._progress_pub = self.create_publisher(
             PoseStamped, '/mission/current_waypoint', 10)
 
-        # Waypoints: list of (x, y, yaw, label)
+        # Load waypoints from YAML file
         self._waypoints = self._load_waypoints()
         self._current_index = 0
         self._failed_goals = 0
@@ -45,21 +45,32 @@ class MissionNode(Node):
 
     def _load_waypoints(self):
         """
-        Boustrophedon waypoints through 3 crop rows.
-        Pattern: start of row1 -> end of row1 -> start of row2 -> end of row2 -> ...
+        Load boustrophedon waypoints from config/waypoints.yaml.
+        Falls back to hardcoded waypoints if file not found.
         """
-        waypoints = [
-            # Row 1 - going forward (east)
-            {'x': -2.5, 'y':  0.0, 'yaw': 0.0,  'label': 'Row 1 - Start'},
-            {'x':  2.5, 'y':  0.0, 'yaw': 0.0,  'label': 'Row 1 - End'},
-            # Row 2 - going backward (west)
-            {'x':  2.5, 'y':  2.1, 'yaw': 3.14, 'label': 'Row 2 - Start'},
-            {'x': -2.5, 'y':  2.1, 'yaw': 3.14, 'label': 'Row 2 - End'},
-            # Row 3 - going forward (east)
-            {'x': -2.5, 'y':  4.2, 'yaw': 0.0,  'label': 'Row 3 - Start'},
-            {'x':  2.5, 'y':  4.2, 'yaw': 0.0,  'label': 'Row 3 - End'},
-        ]
-        return waypoints
+        try:
+            pkg_dir = get_package_share_directory('greenhouse_nav')
+            yaml_file = os.path.join(pkg_dir, 'config', 'waypoints.yaml')
+
+            with open(yaml_file, 'r') as f:
+                data = yaml.safe_load(f)
+
+            waypoints = data['waypoints']
+            self.get_logger().info(
+                f'Loaded {len(waypoints)} waypoints from {yaml_file}')
+            return waypoints
+
+        except Exception as e:
+            self.get_logger().warn(
+                f'Could not load waypoints YAML: {e}. Using hardcoded waypoints.')
+            return [
+                {'x': -2.0, 'y': 0.0,  'yaw': 0.0,  'label': 'Row 1 - Start'},
+                {'x':  2.0, 'y': 0.0,  'yaw': 0.0,  'label': 'Row 1 - End'},
+                {'x':  2.0, 'y': 2.1,  'yaw': 3.14, 'label': 'Row 2 - Start'},
+                {'x': -2.0, 'y': 2.1,  'yaw': 3.14, 'label': 'Row 2 - End'},
+                {'x': -2.0, 'y': 4.2,  'yaw': 0.0,  'label': 'Row 3 - Start'},
+                {'x':  2.0, 'y': 4.2,  'yaw': 0.0,  'label': 'Row 3 - End'},
+            ]
 
     def _send_next_goal(self):
         """Send the next waypoint to Nav2."""
@@ -85,7 +96,6 @@ class MissionNode(Node):
         goal_msg.pose.pose.position.z = 0.0
 
         # Convert yaw to quaternion (simplified for 2D)
-        import math
         goal_msg.pose.pose.orientation.z = math.sin(wp['yaw'] / 2.0)
         goal_msg.pose.pose.orientation.w = math.cos(wp['yaw'] / 2.0)
 

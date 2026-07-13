@@ -4,6 +4,11 @@ from glob import glob
 
 package_name = 'greenhouse_nav'
 
+"""
+If something is changed here, recompiles the package: 
+colcon build --symlink-install
+
+"""
 setup(
     name=package_name,
     version='0.0.0',

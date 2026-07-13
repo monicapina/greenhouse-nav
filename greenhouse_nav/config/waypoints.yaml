@@ -1,0 +1,25 @@
+waypoints:
+  - x: -2.0
+    y: 0.0
+    yaw: 0.0
+    label: "Row 1 - Start"
+  - x: 2.0
+    y: 0.0
+    yaw: 0.0
+    label: "Row 1 - End"
+  - x: 2.0
+    y: 2.1
+    yaw: 3.14
+    label: "Row 2 - Start"
+  - x: -2.0
+    y: 2.1
+    yaw: 3.14
+    label: "Row 2 - End"
+  - x: -2.0
+    y: 4.2
+    yaw: 0.0
+    label: "Row 3 - Start"
+  - x: 2.0
+    y: 4.2
+    yaw: 0.0
+    label: "Row 3 - End"

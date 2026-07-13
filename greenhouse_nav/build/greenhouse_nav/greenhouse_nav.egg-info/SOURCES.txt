@@ -2,6 +2,7 @@ package.xml
 setup.cfg
 setup.py
 config/nav2_params.yaml
+config/waypoints.yaml
 greenhouse_nav/__init__.py
 greenhouse_nav/mission_node.py
 greenhouse_nav.egg-info/PKG-INFO
@@ -12,5 +13,7 @@ greenhouse_nav.egg-info/requires.txt
 greenhouse_nav.egg-info/top_level.txt
 greenhouse_nav.egg-info/zip-safe
 launch/greenhouse.launch.py
+maps/greenhouse_map.pgm
+maps/greenhouse_map.yaml
 resource/greenhouse_nav
 worlds/greenhouse.world
