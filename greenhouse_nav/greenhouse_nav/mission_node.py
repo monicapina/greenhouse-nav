@@ -3,6 +3,9 @@
 Mission node for greenhouse boustrophedon navigation.
 Sends the robot through crop rows in a snake pattern using Nav2.
 Handles failed goals by skipping to the next row.
+Recovery is implemented at mission-node level with a timeout mechanism.
+Trade-off: simpler than a custom BT but robot waits for Nav2 recovery cycle
+before the timeout triggers.
 """
 
 import rclpy
@@ -25,16 +28,21 @@ class MissionNode(Node):
         super().__init__('mission_node')
 
         # Action client to send goals to Nav2
-        self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
+        self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose') #action server name is 'navigate_to_pose'
 
         # Publisher to report progress
         self._progress_pub = self.create_publisher(
-            PoseStamped, '/mission/current_waypoint', 10)
+            PoseStamped, '/mission/current_waypoint', 10) #Publish the current waypoint to a topic for monitoring
 
         # Load waypoints from YAML file
         self._waypoints = self._load_waypoints()
-        self._current_index = 0
-        self._failed_goals = 0
+        self._current_index = 0 
+        self._failed_goals = 0 
+        self._goal_handle = None
+
+        # Timeout: cancel goal after 30 seconds if not reached
+        self._timeout_seconds = 90.0
+        self._timeout_timer = None
 
         self.get_logger().info('Mission node started. Waiting for Nav2...')
         self._action_client.wait_for_server()
@@ -87,44 +95,74 @@ class MissionNode(Node):
         )
 
         # Build the goal pose
-        goal_msg = NavigateToPose.Goal()
+        goal_msg = NavigateToPose.Goal() 
         goal_msg.pose = PoseStamped()
-        goal_msg.pose.header.frame_id = 'map'
-        goal_msg.pose.header.stamp = self.get_clock().now().to_msg()
+        goal_msg.pose.header.frame_id = 'map' #Waypoints are defined in the map frame
+        goal_msg.pose.header.stamp = self.get_clock().now().to_msg() #Check the current time for the header stamp
         goal_msg.pose.pose.position.x = wp['x']
         goal_msg.pose.pose.position.y = wp['y']
         goal_msg.pose.pose.position.z = 0.0
 
-        # Convert yaw to quaternion (simplified for 2D)
-        goal_msg.pose.pose.orientation.z = math.sin(wp['yaw'] / 2.0)
-        goal_msg.pose.pose.orientation.w = math.cos(wp['yaw'] / 2.0)
+        # Convert yaw to quaternion (simplified for 2D). Pitch and roll are zero for ground robots.
+        goal_msg.pose.pose.orientation.z = math.sin(wp['yaw'] / 2.0) 
+        goal_msg.pose.pose.orientation.w = math.cos(wp['yaw'] / 2.0) 
 
-        # Publish progress
+        # Publish progress. Current waypoint is published to a topic for monitoring.
         self._progress_pub.publish(goal_msg.pose)
 
         # Send goal
         self._send_goal_future = self._action_client.send_goal_async(
             goal_msg,
-            feedback_callback=self._feedback_callback
-        )
-        self._send_goal_future.add_done_callback(self._goal_response_callback)
+            feedback_callback=self._feedback_callback #Information about the progress
+        ) 
+        self._send_goal_future.add_done_callback(self._goal_response_callback) #Nav2 will  accepts or rejects the goal
 
-    def _goal_response_callback(self, future):
+    def _goal_response_callback(self, future): #
         """Called when Nav2 accepts or rejects our goal."""
-        goal_handle = future.result()
+        goal_handle = future.result() # Retrieve the goal handle from the future result
 
-        if not goal_handle.accepted:
+        if not goal_handle.accepted: #Rejected goal. Skip to next row.
             self.get_logger().warn(
                 f'Goal rejected for waypoint {self._current_index + 1}. Skipping...')
             self._skip_to_next_row()
             return
 
+        # Save goal handle so we can cancel it if needed
+        self._goal_handle = goal_handle
         self.get_logger().info('Goal accepted by Nav2.')
-        self._result_future = goal_handle.get_result_async()
-        self._result_future.add_done_callback(self._result_callback)
+
+        # Start timeout timer
+        self._timeout_timer = self.create_timer(
+            self._timeout_seconds, self._timeout_callback) #Init timer
+
+        self._result_future = goal_handle.get_result_async() #nav2 will return the result of the goal when it is finished or canceled. This is an asynchronous call that returns a future.
+        self._result_future.add_done_callback(self._result_callback) #when result is ready, call the result callback to handle the result of the goal.
+
+    def _timeout_callback(self):
+        """Called if robot takes too long — cancel goal and skip row."""
+        self.get_logger().warn(
+            f'Timeout reached for waypoint {self._current_index + 1}. '
+            f'Cancelling goal and skipping row...')
+
+        # Cancel the timer
+        self._timeout_timer.cancel()
+        self._timeout_timer = None
+
+        # Cancel the Nav2 goal
+        if self._goal_handle is not None:
+            self._goal_handle.cancel_goal_async()
+            self._goal_handle = None
+
+        self._skip_to_next_row()
 
     def _result_callback(self, future):
         """Called when Nav2 finishes navigating to a goal."""
+
+        # Cancel timeout timer if goal finished before timeout
+        if self._timeout_timer is not None:
+            self._timeout_timer.cancel()
+            self._timeout_timer = None
+
         result = future.result()
         status = result.status
 
@@ -168,7 +206,7 @@ class MissionNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = MissionNode()
-    rclpy.spin(node)
+    rclpy.spin(node) 
     node.destroy_node()
     rclpy.shutdown()
 
