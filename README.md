@@ -24,7 +24,6 @@ colcon build --symlink-install
 
 **Terminal 1 — Launch everything (Gazebo + robot + Nav2):**
 ```bash
-conda deactivate
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 export TURTLEBOT3_MODEL=burger
@@ -34,13 +33,13 @@ ros2 launch greenhouse_nav greenhouse.launch.py
 
 **Terminal 2 — RViz (optional, for visualisation):**
 ```bash
-conda deactivate && source /opt/ros/humble/setup.bash && source install/setup.bash
+source /opt/ros/humble/setup.bash && source install/setup.bash
 ros2 run rviz2 rviz2 -d greenhouse_nav/nav2_default_view_2.rviz
 ```
 
 **Terminal 3 — Run the mission:**
 ```bash
-conda deactivate && source /opt/ros/humble/setup.bash && source install/setup.bash
+source /opt/ros/humble/setup.bash && source install/setup.bash
 ros2 run greenhouse_nav mission_node
 ```
 
