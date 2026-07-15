@@ -2,7 +2,7 @@
 
 ROS2 Humble · TurtleBot3 Burger · Nav2 · Gazebo Classic
 
-> 📹 [Screen recording of full mission run](media/result.mp4)
+> 📹 [Screen recording of full mission run](greenhouse_nav/media/result.mp4)
 
 ---
 
@@ -88,7 +88,7 @@ greenhouse_nav/
 ├── config/nav2_params.yaml          # Tuned Nav2 parameters
 ├── config/waypoints.yaml            # Boustrophedon waypoints
 ├── maps/greenhouse_map.*            # Occupancy grid map
-├── media/result.mp4                 # Screen recording
+├── greenhouse_nav/media/result.mp4                 # Screen recording
 └── greenhouse_nav/mission_node.py   # Mission node
 ```
 
