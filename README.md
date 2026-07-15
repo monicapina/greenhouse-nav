@@ -85,13 +85,19 @@ docker exec -it <container_id> /bin/bash -c \
 
 ```
 greenhouse_nav/
-├── launch/greenhouse.launch.py      # Single launch: Gazebo + robot + Nav2
-├── worlds/greenhouse.world          # 3 corridors + red obstacle in row 3
-├── config/nav2_params.yaml          # Tuned Nav2 parameters
-├── config/waypoints.yaml            # Boustrophedon waypoints
-├── maps/greenhouse_map.*            # Occupancy grid map
-├── greenhouse_nav/media/result.mp4                 # Screen recording
-└── greenhouse_nav/mission_node.py   # Mission node
+├── launch/
+│   └── greenhouse.launch.py     # Starts Gazebo, robot and Nav2 in sequence
+├── worlds/
+│   └── greenhouse.world         # 5 crop row corridors + red obstacle
+├── config/
+│   ├── nav2_params.yaml         # Tuned costmap, controller and AMCL params
+│   └── waypoints.yaml           # Boustrophedon waypoints for all 5 rows
+├── maps/
+│   └── greenhouse_map.*         # Occupancy grid map (programmatically generated)
+├── media/
+│   └── result.mp4               # Screen recording of a full mission run
+└── greenhouse_nav/
+└── mission_node.py          # Boustrophedon mission + obstacle recovery
 ```
 
 ## Tasks
