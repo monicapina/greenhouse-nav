@@ -2,40 +2,32 @@
 
 ROS2 Humble · TurtleBot3 Burger · Nav2 · Gazebo Classic
 
-> 📹 [Screen recording of full mission run](media/final_result.mp4)
+> 📹 [Screen recording of full mission run](media/result.mp4)
 
 ---
 
-## Installation
+## Quick start
 
 ```bash
-# Clone the repository
 git clone https://github.com/monicapina/greenhouse-nav.git
 cd greenhouse-nav/greenhouse_nav
 
-# Install ROS2 dependencies
 sudo apt install -y \
   ros-humble-navigation2 \
   ros-humble-nav2-bringup \
   ros-humble-turtlebot3* \
   python3-colcon-common-extensions
 
-# Build the package
 source /opt/ros/humble/setup.bash
 colcon build --symlink-install
 ```
 
-> **Note:** If using Miniconda, run `conda deactivate` before sourcing ROS2 to avoid Python version conflicts.
 
----
-
-## Running
-
-Every new terminal requires:
+Every new terminal:
 ```bash
-conda deactivate                                          # if using conda
-source /opt/ros/humble/setup.bash                        # source ROS2
-cd greenhouse-nav/greenhouse_nav && source install/setup.bash  # source package
+conda deactivate
+source /opt/ros/humble/setup.bash
+source install/setup.bash
 export TURTLEBOT3_MODEL=burger
 export GAZEBO_MODEL_PATH=/opt/ros/humble/share/turtlebot3_gazebo/models
 ```
@@ -45,9 +37,9 @@ export GAZEBO_MODEL_PATH=/opt/ros/humble/share/turtlebot3_gazebo/models
 ros2 launch greenhouse_nav greenhouse.launch.py
 ```
 
-**Terminal 2 — RViz (set initial pose with 2D Pose Estimate at x=0, y=0):**
+**Terminal 2 — RViz (optional, for visualisation):**
 ```bash
-ros2 run rviz2 rviz2 -d /opt/ros/humble/share/nav2_bringup/rviz/nav2_default_view.rviz
+ros2 run rviz2 rviz2 -d greenhouse_nav/nav2_default_view_2.rviz
 ```
 
 **Terminal 3 — Run the mission:**
@@ -55,18 +47,17 @@ ros2 run rviz2 rviz2 -d /opt/ros/humble/share/nav2_bringup/rviz/nav2_default_vie
 ros2 run greenhouse_nav mission_node
 ```
 
+> The mission node publishes the initial pose automatically — no manual RViz interaction needed.
+
 ---
 
-## Running with Docker (bonus)
+## Docker (bonus)
 
 Requires Nvidia GPU and Linux with display.
 
 ```bash
-# Build
 cd greenhouse-nav
 docker build -t greenhouse-nav .
-
-# Run
 xhost +local:docker
 docker run -it --rm \
   --gpus all \
@@ -76,7 +67,7 @@ docker run -it --rm \
   greenhouse-nav
 ```
 
-Then in a second terminal run the mission:
+Then in a second terminal:
 ```bash
 docker exec -it <container_id> /bin/bash -c \
   "source /opt/ros/humble/setup.bash && \
@@ -84,19 +75,20 @@ docker exec -it <container_id> /bin/bash -c \
    ros2 run greenhouse_nav mission_node"
 ```
 
-> Gazebo Classic requires GPU access inside Docker. Migrating to Gazebo Ignition would provide better container support.
+> Gazebo Classic requires GPU passthrough. Migrating to Gazebo Ignition would enable fully headless containers.
 
 ---
 
-## Structure
+## Repository structure
 
 ```
 greenhouse_nav/
-├── launch/greenhouse.launch.py      # Gazebo + robot + Nav2
-├── worlds/greenhouse.world          # 3 corridors + red obstacle
+├── launch/greenhouse.launch.py      # Single launch: Gazebo + robot + Nav2
+├── worlds/greenhouse.world          # 3 corridors + red obstacle in row 3
 ├── config/nav2_params.yaml          # Tuned Nav2 parameters
 ├── config/waypoints.yaml            # Boustrophedon waypoints
 ├── maps/greenhouse_map.*            # Occupancy grid map
+├── media/result.mp4                 # Screen recording
 └── greenhouse_nav/mission_node.py   # Mission node
 ```
 
@@ -104,71 +96,105 @@ greenhouse_nav/
 
 ## Task 1 — Simulation setup
 
-The world contains 3 parallel crop row corridors (~1m wide) built from simple box geometry. A red obstacle blocks row 2 for Task 4.
+The world contains 3 parallel crop row corridors (~1 m wide, ~9 m long) built from box geometry. A red obstacle (0.4 × 1.2 m) blocks one row to trigger the recovery behaviour in Task 4.
 
-The single launch file starts everything in sequence:
-- t=0s → Gazebo with greenhouse world
-- t=15s → TurtleBot3 Burger spawned at (0, 0)
-- t=20s → Nav2 full stack
+The launch file starts everything with timed delays to avoid Gazebo race conditions:
 
-**Map note:** Generated programmatically from known world dimensions using Python/PIL. Cartographer SLAM was attempted but struggled with the symmetric parallel corridors — a known limitation of feature-based SLAM in repetitive environments. In production, SLAM Toolbox would be used on first run and the map saved for reuse.
+- `t=0s` → Gazebo with greenhouse world
+- `t=3s` → TurtleBot3 Burger spawned at `(0, 0)`
+- `t=5s` → Nav2 full stack
+
+**Map generation:** Generated programmatically from known world geometry using Python/PIL rather than SLAM. Cartographer was attempted but struggled with the symmetric parallel corridors — a known limitation of feature-based SLAM in repetitive environments with no distinctive landmarks. In production, SLAM Toolbox would be used on first run and the map saved for reuse.
 
 ---
 
 ## Task 2 — Row-following mission
 
-The mission node sends the robot through the field in a boustrophedon (snake) pattern using Nav2's `NavigateToPose` action:
+The mission node drives the robot in a boustrophedon pattern across 3 rows using Nav2's `NavigateToPose` action. Waypoints are loaded from `config/waypoints.yaml` and can be edited without recompiling.
 
-```
-Row 1 →   (-2.0, 0.0) → (2.0, 0.0)
-Row 2 ←   ( 2.0, 2.1) → (-2.0, 2.1)
-Row 3 →   (-2.0, 4.2) → (2.0, 4.2)
-```
+**Startup sequence:** The node publishes the initial pose to `/initialpose` automatically (retrying every 2s until AMCL confirms via `/amcl_pose`), then polls the `bt_navigator` lifecycle state until active before sending the first goal. This removes the need for manual RViz interaction and avoids race conditions with Nav2 startup.
 
-Waypoints are loaded from `config/waypoints.yaml` — they can be edited without recompiling. To change the pattern, just update the YAML file.
-
-Progress is reported via logs and published on `/mission/current_waypoint` (PoseStamped). The planned path is also published on `/mission/planned_path` and visible in RViz.
+**Progress reporting:**
+- Logs report current waypoint, row completion, and any skips
+- `/mission/current_waypoint` (PoseStamped) — current navigation target
+- `/mission/planned_path` (Path) — full boustrophedon path, visible in RViz
 
 ---
 
-## Task 3 — Tuning for narrow rows
+## Task 3 — Nav2 tuning for narrow rows
 
-| Parameter | Default | Ours | Why |
-|-----------|---------|------|-----|
-| Controller | DWB | RegulatedPurePursuitController | DWB oscillates in tight spaces. Pure Pursuit follows the path smoothly. |
-| `desired_linear_vel` | 0.22 m/s | 0.2 m/s | More time to correct heading in narrow corridors |
-| `inflation_radius` | 0.55 m | 0.3 m | 0.55m inflates both walls into the center — no path found |
-| `cost_scaling_factor` | 3.0 | 5.0 | Steeper gradient keeps the robot centered |
-| `robot_radius` | 0.22 m | 0.11 m | Matches real TB3 Burger size (0.105m) |
-| Local costmap | 5×5 m | 2×2 m | Prevents adjacent corridor walls from interfering |
-| `lookahead_dist` | 0.6 m | 0.4 m | Faster reaction to corridor geometry |
+The default Nav2 parameters are designed for open spaces. The 1 m corridors required several changes to avoid oscillation, wall collisions, and planning failures.
+
+### Problem: robot too wide for the planner
+
+**Default `robot_radius`: 0.22 m → changed to 0.11 m**
+
+The default value is larger than the actual TurtleBot3 Burger footprint (0.105 m). With 0.22 m, the inflation layer would treat the robot as too wide to fit in the corridor, causing the planner to fail or hug the walls. Setting it to the real size gives the planner accurate information.
+
+### Problem: walls inflated into the corridor centre
+
+**Default `inflation_radius`: 0.55 m → changed to 0.15 m**
+
+With a 1 m corridor and walls on both sides, an inflation radius of 0.55 m means the lethal zone extends 0.55 m from each wall — covering the entire corridor. No path can be found. Reducing it to 0.15 m keeps a safe buffer around the walls while leaving a navigable centre.
+
+**`cost_scaling_factor`: 3.0 → 5.0**
+
+A steeper cost gradient around the walls pushes the robot toward the corridor centre. With a low gradient, the robot drifts toward walls because the cost difference is small. With 5.0, the centre is clearly the lowest-cost path.
+
+### Problem: local costmap sees adjacent corridors
+
+**Local costmap size: 5 × 5 m → 2 × 2 m**
+
+The default 5 × 5 m local costmap is wide enough to include the walls of adjacent corridors. This caused the controller to react to obstacles that were not in the current row, creating erratic steering. Reducing it to 2 × 2 m limits the controller's view to the immediate surroundings.
+
+### Problem: controller oscillates in tight spaces
+
+**Controller: DWB → RegulatedPurePursuitController**
+
+DWB (Dynamic Window Approach) samples many velocity candidates and scores them, which causes oscillation in narrow corridors because small heading errors lead to large velocity corrections. RegulatedPurePursuitController follows the planned path directly using a lookahead point, producing smooth straight-line motion in corridors.
+
+**`desired_linear_vel`: 0.22 m/s → 0.2 m/s**
+
+Slightly lower speed gives the controller more time to react to corridor geometry and reduces overshoot at row ends.
+
+**`lookahead_dist`: 0.6 m → 0.4 m**
+
+A shorter lookahead distance makes the controller react faster to upcoming curves (e.g. row entries). At 0.6 m the robot would start turning too late and clip the corridor walls.
 
 ---
 
 ## Task 4 — Recovery behaviour
 
-A red obstacle blocks row 2. Recovery is implemented at **mission-node level** using a 90s timeout:
+A red obstacle blocks one row. Recovery is implemented entirely at **mission-node level** using three complementary mechanisms:
 
-1. Robot attempts row 2
-2. Nav2 runs its built-in recoveries (spin, backup, wait)
-3. If Nav2 returns FAILED or 90s pass, the mission node cancels the goal and calls `_skip_to_next_row()`
-4. The node jumps 2 waypoints forward and continues with row 3
+**1. Stuck detection (primary)**
+The node tracks the Euclidean distance from the robot's AMCL pose to the current goal waypoint. If this distance does not decrease by more than 5 cm within 15 seconds, the robot is considered blocked. Nav2's built-in `distance_remaining` feedback was not used because it resets on every replan and does not reliably reflect actual forward progress.
+
+**2. Plan corridor-exit check (secondary)**
+The node subscribes to Nav2's `/plan` topic. If the planned path exits the current row's Y corridor (±0.6 m) into an already-completed row, the goal is cancelled immediately. This catches cases where Nav2 tries to route around an obstacle through a previously traversed row.
+
+**3. Nav2 STATUS_ABORTED (fallback)**
+If Nav2 finds no path at all, the aborted status triggers the same skip logic.
+
+**On skip — nearest-entry selection:**
+When a row is skipped, the node finds the nearest unvisited row by evaluating **both endpoints** of each candidate row. The closer endpoint becomes the entry point and the other becomes the exit. This minimises travel distance after a detour — for example, if the robot is on the west side of the field after a blocked row, it enters the next row from the west even if the YAML defines it starting from the east.
 
 **Trade-off — mission node vs custom Behavior Tree:**
 
 | | Mission node (ours) | Custom BT |
 |--|--|--|
-| Complexity | Simple, easy to modify | Requires BT XML |
-| Reaction time | Waits for Nav2 recovery cycle | Can react immediately |
-| Maintainability | One Python method | Separate XML file |
+| Complexity | Single Python class, easy to modify | Requires BT XML authoring |
+| Reaction time | Detects blockage via distance tracking and plan monitoring | Can react at the BT tick rate |
+| Maintainability | All logic in one file | Logic split across Python and XML |
+| Live adaptation | Change threshold constants | Modify BT XML and relaunch |
 
-Mission node level is sufficient here. A custom BT would be better if faster obstacle detection were needed (e.g. corridors under 0.5m).
+Mission-node level is the right choice here: it keeps all recovery logic in one readable place and is easy to adapt live (e.g. "retry twice instead of skipping" is a small change to `_skip_to_nearest_unvisited`).
 
 ---
 
-## Limitations
+## Limitations and production notes
 
-- **Initial pose:** Must be set manually in RViz. Could be automated since the robot always spawns at (0, 0) — would be the first change for production.
-- **Localisation:** AMCL struggles in symmetric corridors. Visual markers at row ends or wheel odometry fusion would improve reliability in production.
-- **Recovery timeout:** 90s is conservative. Should be tuned to row length and robot speed in real deployments.
-- **Docker:** Requires Nvidia GPU passthrough. Migrating to Gazebo Ignition would provide full headless container support.
+- **Localisation reliability:** AMCL occasionally fails to converge in highly symmetric corridors. Wheel odometry fusion (`robot_localization` EKF) or distinctive row markers would improve reliability. In production, SLAM Toolbox with a saved map would replace the programmatic map.
+- **Stuck threshold:** `STUCK_TIME_THRESHOLD = 15s` is tuned for the current robot speed (0.2 m/s) and corridor length. It should scale with `row_length / desired_linear_vel` for other deployments.
+- **Row entry direction:** The nearest-endpoint selection means the robot may traverse a row in the reverse direction from the YAML definition. This is intentional — the node handles both directions correctly regardless of which end is entered first.
+- **Docker:** Requires Nvidia GPU passthrough. Gazebo Ignition would enable fully headless containers without GPU requirements.
