@@ -22,42 +22,44 @@ source /opt/ros/humble/setup.bash
 colcon build --symlink-install
 ```
 
-
-Every new terminal:
+**Terminal 1 — Launch everything (Gazebo + robot + Nav2):**
 ```bash
 conda deactivate
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 export TURTLEBOT3_MODEL=burger
 export GAZEBO_MODEL_PATH=/opt/ros/humble/share/turtlebot3_gazebo/models
-```
-
-**Terminal 1 — Launch everything (Gazebo + robot + Nav2):**
-```bash
 ros2 launch greenhouse_nav greenhouse.launch.py
 ```
 
 **Terminal 2 — RViz (optional, for visualisation):**
 ```bash
+conda deactivate && source /opt/ros/humble/setup.bash && source install/setup.bash
 ros2 run rviz2 rviz2 -d greenhouse_nav/nav2_default_view_2.rviz
 ```
 
 **Terminal 3 — Run the mission:**
 ```bash
+conda deactivate && source /opt/ros/humble/setup.bash && source install/setup.bash
 ros2 run greenhouse_nav mission_node
 ```
 
 > The mission node publishes the initial pose automatically — no manual RViz interaction needed.
 
----
-
 ## Docker (bonus)
 
-Requires Nvidia GPU and Linux with display.
+The Docker image installs all dependencies and builds the package automatically. Running it is equivalent to following the manual setup — no ROS2 installation needed on the host.
 
+**Requirements:** Linux host, Nvidia GPU, display (X11).
+
+**Step 1 — Build the image:**
 ```bash
 cd greenhouse-nav
 docker build -t greenhouse-nav .
+```
+
+**Step 2 — Allow Docker to access your display and run:**
+```bash
 xhost +local:docker
 docker run -it --rm \
   --gpus all \
@@ -67,7 +69,9 @@ docker run -it --rm \
   greenhouse-nav
 ```
 
-Then in a second terminal:
+This starts Gazebo + the robot + Nav2 inside the container, with the GUI forwarded to your screen via X11.
+
+**Step 3 — In a second terminal, run the mission:**
 ```bash
 docker exec -it <container_id> /bin/bash -c \
   "source /opt/ros/humble/setup.bash && \
@@ -75,7 +79,8 @@ docker exec -it <container_id> /bin/bash -c \
    ros2 run greenhouse_nav mission_node"
 ```
 
-> Gazebo Classic requires GPU passthrough. Migrating to Gazebo Ignition would enable fully headless containers.
+> **Limitation:** Gazebo Classic requires an Nvidia GPU inside the container (`--gpus all`). Without it, Gazebo will not render correctly. Migrating to Gazebo Ignition would remove this requirement and allow fully headless execution.
+
 
 ---
 
@@ -110,7 +115,7 @@ The launch file starts everything with timed delays to avoid Gazebo race conditi
 
 ## Task 2 — Row-following mission
 
-The mission node drives the robot in a boustrophedon pattern across 3 rows using Nav2's `NavigateToPose` action. Waypoints are loaded from `config/waypoints.yaml` and can be edited without recompiling.
+The mission node drives the robot in a boustrophedon pattern across 5 rows using Nav2's `NavigateToPose` action. Waypoints are loaded from `config/waypoints.yaml` and can be edited without recompiling.
 
 **Startup sequence:** The node publishes the initial pose to `/initialpose` automatically (retrying every 2s until AMCL confirms via `/amcl_pose`), then polls the `bt_navigator` lifecycle state until active before sending the first goal. This removes the need for manual RViz interaction and avoids race conditions with Nav2 startup.
 
