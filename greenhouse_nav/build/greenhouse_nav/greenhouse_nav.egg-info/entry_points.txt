@@ -1,3 +1,0 @@
-[console_scripts]
-mission_node = greenhouse_nav.mission_node:main
-
