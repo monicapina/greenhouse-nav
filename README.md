@@ -41,11 +41,11 @@ source /opt/ros/humble/setup.bash && source install/setup.bash
 ros2 run greenhouse_nav mission_node
 ```
 
-> The mission node publishes the initial pose automatically — no manual RViz interaction needed.
+> The mission node publishes the initial pose automatically, no manual RViz interaction needed.
 
 ## Docker (bonus)
 
-The Docker image installs all dependencies and builds the package automatically. Running it is equivalent to following the manual setup — no ROS2 installation needed on the host.
+The Docker image installs all dependencies and builds the package automatically. Running it is equivalent to following the manual setup, no ROS2 installation needed on the host.
 
 **Requirements:** Linux host, Nvidia GPU, display (X11).
 
@@ -105,7 +105,7 @@ The launch file starts everything in order with timed delays:
 - `t=0s` → Gazebo with the greenhouse world
 - `t=3s` → TurtleBot3 Burger spawned at `(0, 0)`
 - `t=5s` → Nav2 full stack
-**Map:** Generated programmatically from the known world dimensions using Python/PIL. SLAM (Cartographer) was attempted but failed to converge in symmetric parallel corridors — a known limitation when there are no distinctive landmarks. In production, SLAM Toolbox would be used on first run and the map saved for reuse.
+**Map:** Generated programmatically from the known world dimensions using Python/PIL. SLAM (Cartographer) was attempted but failed to converge in symmetric parallel corridors, a known limitation when there are no distinctive landmarks. In production, SLAM Toolbox would be used on first run and the map saved for reuse.
  
 ---
  
@@ -141,7 +141,7 @@ The default is larger than the real TurtleBot3 Burger (0.105 m). With 0.22 m, th
  
 #### The walls were inflated into the middle of the corridor
 **`inflation_radius`: 0.55 m → 0.15 m**
-With 1 m corridors and 0.55 m inflation on each side, the entire corridor was marked as occupied — no path could be found. Reducing to 0.15 m leaves a clear navigable centre.
+With 1 m corridors and 0.55 m inflation on each side, the entire corridor was marked as occupied, no path could be found. Reducing to 0.15 m leaves a clear navigable centre.
  
 **`cost_scaling_factor`: 3.0 → 5.0**
 A steeper cost gradient pushes the robot toward the centre of the corridor. With a low gradient, the robot drifts toward the walls because the cost difference is too small to matter.
@@ -176,7 +176,7 @@ The node monitors Nav2's planned path. If the plan routes through an already-com
 If Nav2 can't find any path at all, the `STATUS_ABORTED` result triggers the same skip.
  
 **Row selection after skip**
-When skipping, the node picks the nearest unvisited row by checking both endpoints of every remaining row. The closer endpoint becomes the entry point — so if the robot is on the west side, it enters from the west, minimising unnecessary travel.
+When skipping, the node picks the nearest unvisited row by checking both endpoints of every remaining row. The closer endpoint becomes the entry point, so if the robot is on the west side, it enters from the west, minimising unnecessary travel.
 
 Each row is tracked as a simple dictionary:
 
