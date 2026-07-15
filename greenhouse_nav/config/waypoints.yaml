@@ -1,25 +1,46 @@
 waypoints:
-  - x: -2.0
+  # Row 1 - going forward (east)
+  - x: 0.5
     y: 0.0
     yaw: 0.0
     label: "Row 1 - Start"
-  - x: 2.0
+  - x: 9.5
     y: 0.0
     yaw: 0.0
     label: "Row 1 - End"
-  - x: 2.0
-    y: 2.1
+  # Row 2 - going backward (west)
+  - x: 9.5
+    y: 2.0
     yaw: 3.14
     label: "Row 2 - Start"
-  - x: -2.0
-    y: 2.1
+  - x: 0.5
+    y: 2.0
     yaw: 3.14
     label: "Row 2 - End"
-  - x: -2.0
-    y: 4.2
+  # Row 3 - going forward (east)
+  - x: 0.5
+    y: 4.0
     yaw: 0.0
     label: "Row 3 - Start"
-  - x: 2.0
-    y: 4.2
+  - x: 9.5
+    y: 4.0
     yaw: 0.0
     label: "Row 3 - End"
+  # Row 4 - going backward (west)
+  - x: 9.5
+    y: 6.0
+    yaw: 3.14
+    label: "Row 4 - Start"
+  - x: 0.5
+    y: 6.0
+    yaw: 3.14
+    label: "Row 4 - End"
+  # Row 5 - going forward (east)
+  - x: 0.5
+    y: 8.0
+    yaw: 0.0
+    label: "Row 5 - Start"
+  - x: 9.5
+    y: 8.0
+    yaw: 0.0
+    label: "Row 5 - End"

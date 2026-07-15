@@ -1,46 +1,33 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="greenhouse">
-    <!-- Required ROS2 Gazebo plugins -->
-    <plugin name="gazebo_ros_init" filename="libgazebo_ros_init.so"/>
-    <plugin name="gazebo_ros_factory" filename="libgazebo_ros_factory.so"/>
 
-    <!-- Sun light -->
-    <include>
-      <uri>model://sun</uri>
-    </include>
+    <include><uri>model://sun</uri></include>
+    <include><uri>model://ground_plane</uri></include>
 
-    <!-- Ground plane -->
-    <include>
-      <uri>model://ground_plane</uri>
-    </include>
-
-    <!-- Greenhouse walls: The walls go from X=-3 to X=3 -->
     <!-- ========== CROP ROW 1 ========== -->
-    <!-- Left wall -->
-    <model name="row1_left">
+    <model name="row1_right">
       <static>true</static>
-      <pose>0 0.5 0.5 0 0 0</pose>
+      <pose>5 -1.0 0.5 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry><box><size>6 0.1 1</size></box></geometry> <!-- 6 meters long, 0.1 wide, 1 tall -->
+          <geometry><box><size>10 1.0 1</size></box></geometry>
         </collision>
         <visual name="visual">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
+          <geometry><box><size>10 1.0 1</size></box></geometry>
         </visual>
       </link>
     </model>
 
-    <!-- Right wall -->
-    <model name="row1_right">
+    <model name="row1_left">
       <static>true</static>
-      <pose>0 -0.5 0.5 0 0 0</pose>
+      <pose>5 1.0 0.5 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
+          <geometry><box><size>10 1.0 1</size></box></geometry>
         </collision>
         <visual name="visual">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
+          <geometry><box><size>10 1.0 1</size></box></geometry>
         </visual>
       </link>
     </model>
@@ -48,26 +35,13 @@
     <!-- ========== CROP ROW 2 ========== -->
     <model name="row2_left">
       <static>true</static>
-      <pose>0 1.6 0.5 0 0 0</pose>
+      <pose>5 3.0 0.5 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
+          <geometry><box><size>10 1.0 1</size></box></geometry>
         </collision>
         <visual name="visual">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
-        </visual>
-      </link>
-    </model>
-
-    <model name="row2_right">
-      <static>true</static>
-      <pose>0 2.6 0.5 0 0 0</pose>
-      <link name="link">
-        <collision name="collision">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
-        </collision>
-        <visual name="visual">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
+          <geometry><box><size>10 1.0 1</size></box></geometry>
         </visual>
       </link>
     </model>
@@ -75,40 +49,55 @@
     <!-- ========== CROP ROW 3 ========== -->
     <model name="row3_left">
       <static>true</static>
-      <pose>0 3.7 0.5 0 0 0</pose>
+      <pose>5 5.0 0.5 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
+          <geometry><box><size>10 1.0 1</size></box></geometry>
         </collision>
         <visual name="visual">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
+          <geometry><box><size>10 1.0 1</size></box></geometry>
         </visual>
       </link>
     </model>
 
-    <model name="row3_right">
+    <!-- ========== CROP ROW 4 ========== -->
+    <model name="row4_left">
       <static>true</static>
-      <pose>0 4.7 0.5 0 0 0</pose>
+      <pose>5 7.0 0.5 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
+          <geometry><box><size>10 1.0 1</size></box></geometry>
         </collision>
         <visual name="visual">
-          <geometry><box><size>6 0.1 1</size></box></geometry>
+          <geometry><box><size>10 1.0 1</size></box></geometry>
         </visual>
       </link>
     </model>
 
-    <!-- ========== OBSTACLE (blocks row 2) ========== -->
+    <!-- ========== CROP ROW 5 ========== -->
+    <model name="row5_left">
+      <static>true</static>
+      <pose>5 9.0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>10 1.0 1</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>10 1.0 1</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ========== OBSTACLE (blocks row 3) ========== -->
     <model name="obstacle">
       <static>true</static>
-      <pose>0 2.1 0.5 0 0 0</pose>
+      <pose>5 4.0 0.5 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry><box><size>0.4 0.4 1</size></box></geometry>
+          <geometry><box><size>0.4 1.2 1</size></box></geometry>
         </collision>
         <visual name="visual">
-          <geometry><box><size>0.4 0.4 1</size></box></geometry>
+          <geometry><box><size>0.4 1.2 1</size></box></geometry>
           <material>
             <ambient>1 0 0 1</ambient>
           </material>

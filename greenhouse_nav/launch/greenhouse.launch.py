@@ -15,9 +15,14 @@ and Gazebo.
 """
 """
 run command:
+
+cd ~/repositories/greenhouse-nav
+colcon build --symlink-install
 conda deactivate
 source /opt/ros/humble/setup.bash
-source install/setup.bash
+source ~/repositories/greenhouse-nav/install/setup.bash
+export TURTLEBOT3_MODEL=burger
+export GAZEBO_MODEL_PATH=/opt/ros/humble/share/turtlebot3_gazebo/models
 ros2 launch greenhouse_nav greenhouse.launch.py
 
 
@@ -71,7 +76,7 @@ def generate_launch_description():
             }]
         ),
 
-        # Spawn TurtleBot3. Simulate the robot physically.
+        # Spawn TurtleBot3. Simulate the robot physically. Add '-timeout', '60' to avoid Gazebo spawn issues using Docker.
         TimerAction(
             period=3.0,
             actions=[
@@ -84,9 +89,10 @@ def generate_launch_description():
                             get_package_share_directory('turtlebot3_gazebo'),
                             'models', 'turtlebot3_burger', 'model.sdf'
                         ),
-                        '-x', '0.0',
+                        '-x', '0.0', 
                         '-y', '0.0',
                         '-z', '0.05',
+                         
                     ],
                     output='screen'
                 ),
@@ -108,21 +114,5 @@ def generate_launch_description():
                     }.items(),
                 ),
             ]
-        ),
-        # Publish initial robot pose to AMCL
-        TimerAction(
-            period=8.0,
-            actions=[
-                ExecuteProcess(
-                    cmd=[
-                        'ros2', 'topic', 'pub', '--once',
-                        '/initialpose',
-                        'geometry_msgs/msg/PoseWithCovarianceStamped',
-                        '{"header": {"frame_id": "map"}, "pose": {"pose": {"position": {"x": 0.0, "y": 0.0, "z": 0.0}, "orientation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0}}, "covariance": [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.068]}}'
-                    ],
-                    output='screen'
-                ),
-            ]
-        ),
-
+        ),      
     ])
