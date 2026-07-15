@@ -31,6 +31,7 @@ ros2 launch greenhouse_nav greenhouse.launch.py
 
 def generate_launch_description():
 
+    #Finds where the package is installed.
     pkg_dir = get_package_share_directory('greenhouse_nav') 
     nav2_bringup = get_package_share_directory('nav2_bringup')
 
@@ -38,7 +39,7 @@ def generate_launch_description():
     nav2_params = os.path.join(pkg_dir, 'config', 'nav2_params.yaml')
     map_file = os.path.join(pkg_dir, 'maps', 'greenhouse_map.yaml')
 
-    # Load the TurtleBot3 URDF file. Publish the TF tree, the geometric relationships between links.
+    # Load the TurtleBot3 URDF file.
     urdf_file = os.path.join(
         get_package_share_directory('turtlebot3_gazebo'),
         'urdf', 'turtlebot3_burger.urdf'
@@ -64,7 +65,7 @@ def generate_launch_description():
             output='screen' #or 'log'
         ),
 
-        # Robot state publisher
+        # Robot state publisher. Publish the TF tree, the geometric relationships between links.
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
