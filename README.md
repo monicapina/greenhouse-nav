@@ -26,8 +26,6 @@ colcon build --symlink-install
 ```bash
 source /opt/ros/humble/setup.bash
 source install/setup.bash
-export TURTLEBOT3_MODEL=burger
-export GAZEBO_MODEL_PATH=/opt/ros/humble/share/turtlebot3_gazebo/models
 ros2 launch greenhouse_nav greenhouse.launch.py
 ```
 
