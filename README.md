@@ -97,7 +97,7 @@ greenhouse_nav/
 ├── media/
 │   └── result.mp4               # Screen recording of a full mission run
 └── greenhouse_nav/
-└── mission_node.py          # Boustrophedon mission + obstacle recovery
+    └── mission_node.py          # Boustrophedon mission + obstacle recovery
 ```
 
 ## Tasks
