@@ -113,7 +113,7 @@ The launch file starts everything in order with timed delays:
 - `t=3s` → TurtleBot3 Burger spawned at `(0, 0)`
 - `t=5s` → Nav2 full stack
 
-**Map:** Generated programmatically from the known world dimensions using Python/PIL. SLAM (Cartographer) was attempted but failed to converge in symmetric parallel corridors, a known limitation when there are no distinctive landmarks. In production, SLAM Toolbox would be used on first run and the map saved for reuse.
+**Map:** Generated programmatically from the known world dimensions using Python/PIL. 
  
 ---
  
