@@ -102,7 +102,8 @@ greenhouse_nav/
 
 ## Tasks
  
-![Mission flow](greenhouse_nav/media/mission_flow.png)
+<img src="greenhouse_nav/media/mission_flow.png" alt="Mission flow" width="400" />
+
 ### Task 1 — Simulation setup
  
 The world has 5 parallel crop row corridors (~1 m wide, ~9 m long) built from simple box geometry. A red obstacle blocks one row to test the recovery behaviour in Task 4.
